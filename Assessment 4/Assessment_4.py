@@ -18,17 +18,21 @@ class DatabaseApp:
         self.create_widgets()
 
     def create_widgets(self):
-        # Create buttons with some padding and width
-        btn_all_records = tk.Button(self.root, text="Print All Records", command=self.print_all_records, width=25, pady=10)
+        # Create frame for centering buttons
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(expand=True, padx=20, pady=20)
+
+        # Create buttons with specific styling
+        btn_all_records = tk.Button(button_frame, text="Print All Records", command=self.print_all_records, width=25)
         btn_all_records.pack(pady=5)
         
-        btn_positive_growth = tk.Button(self.root, text="Print Positive Growth", command=self.print_positive_growth, width=25, pady=10)
+        btn_positive_growth = tk.Button(button_frame, text="Print Positive Growth", command=self.print_positive_growth, width=25)
         btn_positive_growth.pack(pady=5)
         
-        btn_query_by_date = tk.Button(self.root, text="Query Record by Date", command=self.query_record_by_date, width=25, pady=10)
+        btn_query_by_date = tk.Button(button_frame, text="Query Record by Date", command=self.query_record_by_date, width=25)
         btn_query_by_date.pack(pady=5)
         
-        btn_count_between_dates = tk.Button(self.root, text="Count Companies Between Dates", command=self.count_companies_between_dates, width=25, pady=10)
+        btn_count_between_dates = tk.Button(button_frame, text="Count Companies Between Dates", command=self.count_companies_between_dates, width=25)
         btn_count_between_dates.pack(pady=5)
 
     def print_all_records(self):
@@ -36,38 +40,29 @@ class DatabaseApp:
             # Create a new window for displaying records
             records_window = tk.Toplevel(self.root)
             records_window.title("All Company Records")
-            records_window.geometry("800x400")
+            records_window.geometry("800x300")
 
-            # Create a treeview widget
-            tree = ttk.Treeview(records_window)
-            tree["columns"] = ("company_name", "industry", "year_revenue", "revenue_growth", "number_of_employees", "headquarter", "company_found_date")
+            # Create a frame for the header
+            header_frame = tk.Frame(records_window)
+            header_frame.pack(fill=tk.X, padx=10, pady=5)
             
-            # Format columns
-            tree.column("#0", width=0, stretch=tk.NO)
-            tree.column("company_name", anchor=tk.W, width=120)
-            tree.column("industry", anchor=tk.W, width=100)
-            tree.column("year_revenue", anchor=tk.E, width=100)
-            tree.column("revenue_growth", anchor=tk.E, width=100)
-            tree.column("number_of_employees", anchor=tk.E, width=120)
-            tree.column("headquarter", anchor=tk.W, width=100)
-            tree.column("company_found_date", anchor=tk.W, width=120)
+            tk.Label(header_frame, text="All Company Records", font=('Arial', 10, 'bold')).pack()
 
-            # Create headings
-            tree.heading("company_name", text="Company Name")
-            tree.heading("industry", text="Industry")
-            tree.heading("year_revenue", text="Revenue (B)")
-            tree.heading("revenue_growth", text="Growth (%)")
-            tree.heading("number_of_employees", text="Employees")
-            tree.heading("headquarter", text="Headquarter")
-            tree.heading("company_found_date", text="Found Date")
+            # Create text widget for displaying records
+            text_widget = tk.Text(records_window, wrap=tk.NONE, height=15)
+            
+            # Add horizontal scrollbar
+            h_scrollbar = tk.Scrollbar(records_window, orient=tk.HORIZONTAL, command=text_widget.xview)
+            text_widget.configure(xscrollcommand=h_scrollbar.set)
+            
+            # Add vertical scrollbar
+            v_scrollbar = tk.Scrollbar(records_window, orient=tk.VERTICAL, command=text_widget.yview)
+            text_widget.configure(yscrollcommand=v_scrollbar.set)
 
-            # Add scrollbar
-            scrollbar = ttk.Scrollbar(records_window, orient="vertical", command=tree.yview)
-            tree.configure(yscrollcommand=scrollbar.set)
-
-            # Pack the treeview and scrollbar
-            tree.pack(side="left", fill="both", expand=True)
-            scrollbar.pack(side="right", fill="y")
+            # Pack the widgets
+            text_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+            h_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+            v_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
             # Connect to database and fetch records
             with pyodbc.connect(self.conn_str) as conn:
@@ -75,9 +70,30 @@ class DatabaseApp:
                 cursor.execute("SELECT * FROM Company_Data")
                 records = cursor.fetchall()
 
-                # Insert records into treeview
+                # Create headers
+                headers = ["Company Name", "Industry", "Revenue (B)", "Growth (%)", "Employees", "Headquarter", "Found Date"]
+                header_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
+                record_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
+
+                # Insert headers
+                text_widget.insert(tk.END, header_format.format(*headers))
+                text_widget.insert(tk.END, "-" * 110 + "\n")
+
+                # Insert records
                 for record in records:
-                    tree.insert("", "end", values=record)
+                    formatted_record = [
+                        str(record[0]),  # Company Name
+                        str(record[1]),  # Industry
+                        str(record[2]),  # Revenue
+                        str(record[3]),  # Growth
+                        str(record[4]),  # Employees
+                        str(record[5]),  # Headquarter
+                        str(record[6])   # Found Date
+                    ]
+                    text_widget.insert(tk.END, record_format.format(*formatted_record))
+
+                # Make text widget read-only
+                text_widget.configure(state='disabled')
 
         except pyodbc.Error as e:
             messagebox.showerror("Database Error", f"Failed to fetch records: {str(e)}")
@@ -85,7 +101,69 @@ class DatabaseApp:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
     def print_positive_growth(self):
-        pass
+        try:
+            # Create a new window for displaying records
+            growth_window = tk.Toplevel(self.root)
+            growth_window.title("Companies with Positive Growth")
+            growth_window.geometry("800x300")
+
+            # Create a frame for the header
+            header_frame = tk.Frame(growth_window)
+            header_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            tk.Label(header_frame, text="Companies with Positive Growth", font=('Arial', 10, 'bold')).pack()
+
+            # Create text widget for displaying records
+            text_widget = tk.Text(growth_window, wrap=tk.NONE, height=15)
+            
+            # Add horizontal scrollbar
+            h_scrollbar = tk.Scrollbar(growth_window, orient=tk.HORIZONTAL, command=text_widget.xview)
+            text_widget.configure(xscrollcommand=h_scrollbar.set)
+            
+            # Add vertical scrollbar
+            v_scrollbar = tk.Scrollbar(growth_window, orient=tk.VERTICAL, command=text_widget.yview)
+            text_widget.configure(yscrollcommand=v_scrollbar.set)
+
+            # Pack the widgets
+            text_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+            h_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+            v_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            # Connect to database and fetch records with positive growth
+            with pyodbc.connect(self.conn_str) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM Company_Data WHERE revenue_growth > 0")
+                records = cursor.fetchall()
+
+                # Create headers
+                headers = ["Company Name", "Industry", "Revenue (B)", "Growth (%)", "Employees", "Headquarter", "Found Date"]
+                header_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
+                record_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
+
+                # Insert headers
+                text_widget.insert(tk.END, header_format.format(*headers))
+                text_widget.insert(tk.END, "-" * 110 + "\n")
+
+                # Insert records
+                for record in records:
+                    formatted_record = [
+                        str(record[0]),  # Company Name
+                        str(record[1]),  # Industry
+                        str(record[2]),  # Revenue
+                        str(record[3]),  # Growth
+                        str(record[4]),  # Employees
+                        str(record[5]),  # Headquarter
+                        str(record[6])   # Found Date
+                    ]
+                    text_widget.insert(tk.END, record_format.format(*formatted_record))
+
+                # Make text widget read-only
+                text_widget.configure(state='disabled')
+
+        except pyodbc.Error as e:
+            messagebox.showerror("Database Error", f"Failed to fetch records: {str(e)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
     def query_record_by_date(self):
         pass
