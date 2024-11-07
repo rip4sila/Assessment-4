@@ -1,5 +1,5 @@
-import tkinter as tk
-from tkinter import messagebox, ttk, simpledialog
+﻿import tkinter as tk
+from tkinter import messagebox, ttk
 import pyodbc
 from datetime import datetime
 
@@ -7,13 +7,13 @@ class DatabaseApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Company Database App")
-        
+       
         # Database connection settings
         self.conn_str = (
             r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
             r'DBQ=C:/Users/2024002133/Documents/Company.accdb;'
         )
-        
+       
         # Create main buttons
         self.create_widgets()
 
@@ -23,16 +23,24 @@ class DatabaseApp:
         button_frame.pack(expand=True, padx=20, pady=20)
 
         # Create buttons with specific styling
-        btn_all_records = tk.Button(button_frame, text="Print All Records", command=self.print_all_records, width=25)
+        btn_all_records = tk.Button(button_frame, text="Print All Records",
+                                  command=self.print_all_records,
+                                  width=25)
         btn_all_records.pack(pady=5)
-        
-        btn_positive_growth = tk.Button(button_frame, text="Print Positive Growth", command=self.print_positive_growth, width=25)
+       
+        btn_positive_growth = tk.Button(button_frame, text="Print Positive Growth",
+                                      command=self.print_positive_growth,
+                                      width=25)
         btn_positive_growth.pack(pady=5)
-        
-        btn_query_by_date = tk.Button(button_frame, text="Query Record by Date", command=self.query_record_by_date, width=25)
+       
+        btn_query_by_date = tk.Button(button_frame, text="Query Record by Date",
+                                    command=self.query_record_by_date,
+                                    width=25)
         btn_query_by_date.pack(pady=5)
-        
-        btn_count_between_dates = tk.Button(button_frame, text="Count Companies Between Dates", command=self.count_companies_between_dates, width=25)
+       
+        btn_count_between_dates = tk.Button(button_frame, text="Count Companies Between Dates",
+                                          command=self.count_companies_between_dates,
+                                          width=25)
         btn_count_between_dates.pack(pady=5)
 
     def print_all_records(self):
@@ -45,16 +53,16 @@ class DatabaseApp:
             # Create a frame for the header
             header_frame = tk.Frame(records_window)
             header_frame.pack(fill=tk.X, padx=10, pady=5)
-            
+           
             tk.Label(header_frame, text="All Company Records", font=('Arial', 10, 'bold')).pack()
 
             # Create text widget for displaying records
             text_widget = tk.Text(records_window, wrap=tk.NONE, height=15)
-            
+           
             # Add horizontal scrollbar
             h_scrollbar = tk.Scrollbar(records_window, orient=tk.HORIZONTAL, command=text_widget.xview)
             text_widget.configure(xscrollcommand=h_scrollbar.set)
-            
+           
             # Add vertical scrollbar
             v_scrollbar = tk.Scrollbar(records_window, orient=tk.VERTICAL, command=text_widget.yview)
             text_widget.configure(yscrollcommand=v_scrollbar.set)
@@ -71,7 +79,8 @@ class DatabaseApp:
                 records = cursor.fetchall()
 
                 # Create headers
-                headers = ["Company Name", "Industry", "Revenue (B)", "Growth (%)", "Employees", "Headquarter", "Found Date"]
+                headers = ["Company Name", "Industry", "Revenue (B)", "Growth (%)",
+                          "Employees", "Headquarter", "Found Date"]
                 header_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
                 record_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
 
@@ -110,16 +119,16 @@ class DatabaseApp:
             # Create a frame for the header
             header_frame = tk.Frame(growth_window)
             header_frame.pack(fill=tk.X, padx=10, pady=5)
-            
+           
             tk.Label(header_frame, text="Companies with Positive Growth", font=('Arial', 10, 'bold')).pack()
 
             # Create text widget for displaying records
             text_widget = tk.Text(growth_window, wrap=tk.NONE, height=15)
-            
+           
             # Add horizontal scrollbar
             h_scrollbar = tk.Scrollbar(growth_window, orient=tk.HORIZONTAL, command=text_widget.xview)
             text_widget.configure(xscrollcommand=h_scrollbar.set)
-            
+           
             # Add vertical scrollbar
             v_scrollbar = tk.Scrollbar(growth_window, orient=tk.VERTICAL, command=text_widget.yview)
             text_widget.configure(yscrollcommand=v_scrollbar.set)
@@ -136,7 +145,8 @@ class DatabaseApp:
                 records = cursor.fetchall()
 
                 # Create headers
-                headers = ["Company Name", "Industry", "Revenue (B)", "Growth (%)", "Employees", "Headquarter", "Found Date"]
+                headers = ["Company Name", "Industry", "Revenue (B)", "Growth (%)",
+                          "Employees", "Headquarter", "Found Date"]
                 header_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
                 record_format = "{:<20} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"
 
@@ -173,7 +183,7 @@ class DatabaseApp:
 
         # Create and pack widgets
         tk.Label(query_window, text="Enter date (DD-MM-YYYY):", pady=10).pack()
-        
+       
         # Create entry field
         date_entry = tk.Entry(query_window)
         date_entry.pack(pady=5)
@@ -205,7 +215,75 @@ class DatabaseApp:
         search_btn.pack(pady=10)
 
     def count_companies_between_dates(self):
-        pass
+        # Create a new window for the date range query
+        query_window = tk.Toplevel(self.root)
+        query_window.title("Companies Between Dates")
+        query_window.geometry("400x250")
+
+        # Create and pack widgets
+        tk.Label(query_window, text="Enter date range (DD-MM-YYYY):", pady=10).pack()
+       
+        # Create frame for date inputs
+        dates_frame = tk.Frame(query_window)
+        dates_frame.pack(pady=5)
+
+        # Start date input
+        tk.Label(dates_frame, text="Start Date:").grid(row=0, column=0, padx=5)
+        start_date_entry = tk.Entry(dates_frame)
+        start_date_entry.grid(row=0, column=1, padx=5)
+
+        # End date input
+        tk.Label(dates_frame, text="End Date:").grid(row=1, column=0, padx=5, pady=5)
+        end_date_entry = tk.Entry(dates_frame)
+        end_date_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        # Create text widget for results
+        result_text = tk.Text(query_window, height=8, width=40)
+        result_text.pack(pady=10, padx=10)
+        result_text.config(state='disabled')
+
+        def search_dates():
+            start_date = start_date_entry.get()
+            end_date = end_date_entry.get()
+
+            try:
+                # Connect to database and search for records
+                with pyodbc.connect(self.conn_str) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT Company_Name, company_found_date
+                        FROM Company_Data
+                        WHERE company_found_date BETWEEN ? AND ?
+                        ORDER BY company_found_date
+                    """, (start_date, end_date))
+                    records = cursor.fetchall()
+
+                    # Enable text widget for updating
+                    result_text.config(state='normal')
+                    result_text.delete(1.0, tk.END)
+
+                    if records:
+                        result_text.insert(tk.END, f"Companies found: {len(records)}\n\n")
+                        for record in records:
+                            result_text.insert(tk.END, f"{record[0]} ({record[1]})\n")
+                    else:
+                        result_text.insert(tk.END, "No companies found in this date range.")
+
+                    # Disable text widget after updating
+                    result_text.config(state='disabled')
+
+            except pyodbc.Error as e:
+                messagebox.showerror("Database Error", f"Failed to query records: {str(e)}")
+            except Exception as e:
+                messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+        # Create search button
+        search_btn = tk.Button(query_window, text="Search", command=search_dates)
+        search_btn.pack(pady=5)
+
+        # Create close button
+        close_btn = tk.Button(query_window, text="Close", command=query_window.destroy)
+        close_btn.pack(pady=5)
 
 if __name__ == "__main__":
     root = tk.Tk()
