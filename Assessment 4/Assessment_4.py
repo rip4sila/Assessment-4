@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, simpledialog
 import pyodbc
 from datetime import datetime
 
@@ -166,7 +166,43 @@ class DatabaseApp:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
     def query_record_by_date(self):
-        pass
+        # Create a new window for the date query
+        query_window = tk.Toplevel(self.root)
+        query_window.title("Query by Date")
+        query_window.geometry("300x150")
+
+        # Create and pack widgets
+        tk.Label(query_window, text="Enter date (DD-MM-YYYY):", pady=10).pack()
+        
+        # Create entry field
+        date_entry = tk.Entry(query_window)
+        date_entry.pack(pady=5)
+
+        def search_date():
+            date = date_entry.get()
+            try:
+                # Connect to database and search for the record
+                with pyodbc.connect(self.conn_str) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT Company_Name, year_revenue FROM Company_Data WHERE company_found_date = ?", (date,))
+                    record = cursor.fetchone()
+
+                    if record:
+                        result = f"Company: {record[0]}\nRevenue: {record[1]} billion"
+                        messagebox.showinfo("Result", result)
+                    else:
+                        messagebox.showinfo("Result", "No company found with that founding date.")
+
+            except pyodbc.Error as e:
+                messagebox.showerror("Database Error", f"Failed to query record: {str(e)}")
+            except Exception as e:
+                messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            finally:
+                query_window.destroy()
+
+        # Create search button
+        search_btn = tk.Button(query_window, text="Search", command=search_date)
+        search_btn.pack(pady=10)
 
     def count_companies_between_dates(self):
         pass
